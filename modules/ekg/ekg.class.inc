@@ -362,6 +362,7 @@ class ekgModule extends mainModule
             '#collapsible' => TRUE,
             '#collapsed' => FALSE,
             '#weight' => -3,
+            '#extraform' => 'enctype="multipart/form-data"',
             '#action' => '/user/ekg/' . ($this->formhabit == 'readonly' ? 'form/edit_' . $vcache['id'] : 'form_submit'),
             '#error' => isset($vcache['error']) ? $vcache['error'] : FALSE,
             '#formtpl' => MODULES_DIR . DS . 'ekg' . DS . 'ekg.tpl',
@@ -585,7 +586,7 @@ class ekgModule extends mainModule
                         unset($getsender);
                     }
                 }
-                if($value != 'no_registrasi' && $value != 'kunjungan' && $value != 'patients'){
+                if($value != 'no_registrasi' && $value != 'kunjungan' && $value != 'patients' && $value != 'file'){
                     $form['ekg'][$value] = array(
                         '#type' => $this->config->fields_form_type[$value],
                         '#value' => isset($vcache[$value]) ? $vcache[$value] : '',
@@ -624,6 +625,14 @@ class ekgModule extends mainModule
             }
         }
 
+        $form['ekg']['MAX_FILE_SIZE'] = array(
+            '#type' => 'hidden',
+            '#value' => '80000'
+        );
+        $form['ekg']['filedigital'] = array(
+            '#title' => __t('upload file'),
+            '#type' => 'file'
+        );
         $form['ekg']['submit'] = array(
             '#type' => 'submit',
             '#value' => ($this->formhabit == 'readonly' ? __t('edit') : __t('submit'))
@@ -881,8 +890,14 @@ class ekgModule extends mainModule
         }
     }
 
-    function store_jpgdata(){
-        $id = $_POST['id'];
+    function store_jpgdata($storeid = NULL){
+        if(is_null($storeid)){
+            if(isset($_POST['id'])){
+                $id = $_POST['id'];
+            }
+        } else {
+            $id = $storeid;
+        }
         $sql = $this->query->getSelect(
                 array('patients|strnum as patients'),
                 array('ekg', 'patients'),
